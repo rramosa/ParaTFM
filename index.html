@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+  <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Nivel de formación y desempleo entre jóvenes en Europa</title>
+    <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/6D83BDAB-324B-DD48-8E49-CF2C3000C06A/main.js" charset="UTF-8"></script><link rel="stylesheet" crossorigin="anonymous" href="https://ff.kis.v2.scr.kaspersky-labs.com/FFD6154F-8966-6D4D-88AB-710A632CA0F7/abn/main.css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+
+    <style type="text/css">
+
+      body {
+        background-color: #FFF;
+        font-family:Verdana;
+      }
+
+      .axis path,
+      .axis line {
+        fill:none;
+        stroke:black;
+        shape-rendering:crispEdges;
+      }
+      p{
+        color:black;
+        width: 300px;
+        height:50px;
+        padding:2 2 2 2;
+        font-size: 13px;
+        font-style:bold;
+        text-align: inherit;
+
+                    }
+     }
+
+
+      .axis text {
+        font-family: Verdana;
+        font-size: 12px;
+      }
+
+      circle {
+        //*fill: cyan**//;
+        }
+
+      circle:hover {
+        fill:blue;
+        stroke:black;
+      }
+
+      header {
+        width: 660px;
+        height:50px;
+        overflow: hidden;
+        background: none;
+        margin-bottom: 12px;
+        text-align: center;
+        color:black;
+      }
+      h3{
+        color:black;
+        width: 600px;
+        height:80px;
+        padding:6 6 6 6;
+        font-size: 18px;
+        font-style:bold;
+        text-align: center;
+      }
+      svg{
+        background-color: #fff;
+      }
+
+    </style>
+
+  </head>
+
+
+  <body>
+    <header class="header">
+
+    <h3>Formación universitaria vs desempleo en Europa (2017)</h3>
+  </header>
+  <p>Formación: Jóvenes de entre 25 y 34 años. Desempleo: menores de 25 años. Los datos de Italia corresponden a 2016. Fuente: Eurostat </p>
+
+    <script>
+      var widthGraph = 600
+      var heightGraph = 600
+      var paddingObject = {
+        top: 15,
+        left:155,
+        bottom:75,
+        right: 25,
+      }
+      var svg = d3.select("body")
+            .append("svg")
+            .attr("width",widthGraph + paddingObject.left + paddingObject.right)
+            .attr("height",heightGraph + paddingObject.top + paddingObject.bottom)
+
+      var xScale = d3.scale.linear().range([0,widthGraph])
+
+      var yScale = d3.scale.linear().range([heightGraph,0])
+
+      var xAxisFunction = d3.svg.axis()
+      .scale(xScale)
+      .orient("bottom")
+      .ticks(5);
+
+      var yAxisFunction = d3.svg.axis()
+      .scale(yScale)
+      .orient("left")
+
+
+
+      d3.csv("Tablo2.csv", function(dataFromCSV) {
+
+          //ORDENAR DATOS
+          dataFromCSV.sort(function(a,b) {
+            return d3.ascending(+a.Porcentaje_de_poblacin_de_entre_25_y_34_con_educacion_superior,+b.Parados);
+          });
+          xScale.domain([0,d3.max(dataFromCSV,function(d,i) { return +d.Parados})])
+          yScale.domain([20,d3.max(dataFromCSV,function(d,i) { return +d.Porcentaje_de_poblacin_de_entre_25_y_34_con_educacion_superior})])
+
+          var items = d3.select("svg").selectAll("circle").data(dataFromCSV)
+
+          //ENTER
+          items.enter().append("circle")
+            .attr("r","1")
+            .attr("fill","blue")
+            .attr("cx",-100)
+            .append("title")
+            .text(function(d) {
+              var fecha = new Date(d.fecha);
+              var y = fecha.getFullYear();
+              return d.Pais + " tiene  " + d.Porcentaje_de_poblacin_de_entre_25_y_34_con_educacion_superior + " porcentaje de jóvenes de entre 25 y 34 años con educación superior y " + d.Parados + " porcentaje de desmpleo entre los menores de 25 años "
+            });;
+
+            //EXIT
+            items.exit().remove()
+
+            //UPDATE
+            items
+
+            .attr("cy",function(d,i) {
+              return paddingObject.top + yScale(d.Porcentaje_de_poblacin_de_entre_25_y_34_con_educacion_superior)
+            })
+            .transition().duration(3500)
+            .attr("r","15")
+            .attr("fill","orange")
+            .attr("cx",function(d,i) {
+              return paddingObject.left +  xScale(d.Parados)
+            })
+
+
+            svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform","translate(" + paddingObject.left + "," + (paddingObject.top + heightGraph + 5) + ")")
+              .call(xAxisFunction)
+              .append("text")
+              .attr("x", widthGraph)
+              .attr("y", -10)
+              .style("text-anchor", "end")
+              .text("DESEMPLEO ENTRE MENORES DE 25 AÑOS")
+
+            svg.append("g")
+              .attr("class", "y axis")
+              .attr("transform","translate(" + (paddingObject.left - 5) + "," +paddingObject.top+")")
+              .call(yAxisFunction)
+              .append("text")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 20)
+              .style("text-anchor", "end")
+              .text("JÓVENES CON EDUCACIÓN SUPERIOR (25 Y 34 AÑOS)")
+
+      });
+    </script>
+
+  </body>
+</html>
